@@ -46,7 +46,7 @@ export default function Header() {
     return () => (mounted = false);
   }, []);
 
-  const logoSrc = mounted && resolvedTheme === "dark" ? "/logo.png" : "/dark-logo.png";
+  const logoSrc = mounted && resolvedTheme === "dark" ? "/white-logo.png" : "/logo.png";
 
   /** guarded navigation */
   const go = async (href) => {
