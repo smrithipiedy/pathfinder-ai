@@ -43,8 +43,21 @@ export default function ATSForm({ savedResumeContent, onComplete }) {
           jobTitle,
           companyName,
         });
-        toast.success("ATS analysis complete!");
-        onComplete(result);
+        if (result?.success) {
+          toast.success("ATS analysis complete!");
+          onComplete(result);
+        } else {
+          // Surface server-side validation errors or generic error
+          const errorMessage =
+            result?.errors?.resumeContent?.[0] ||
+            result?.errors?.jobDescription?.[0] ||
+            result?.errors?.jobTitle?.[0] ||
+            result?.errors?.companyName?.[0] ||
+            result?.errors?._form?.[0] ||
+            "Analysis failed. Please review your input and try again.";
+
+          toast.error(errorMessage);
+        }
       } catch (err) {
         console.error(err);
         toast.error(err.message || "Analysis failed. Please try again.");
