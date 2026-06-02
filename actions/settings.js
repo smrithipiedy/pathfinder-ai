@@ -36,10 +36,10 @@ function normalizeSettingsInput(data) {
   };
 }
 
-export async function getUserSettings(userId) {
-  const { userId: authenticatedUserId } = await auth();
+export async function getUserSettings() {
+  const { userId } = await auth();
 
-  if (!authenticatedUserId || authenticatedUserId !== userId) {
+  if (!userId) {
     throw new Error("Unauthorized");
   }
 
