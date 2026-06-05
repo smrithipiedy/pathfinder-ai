@@ -63,6 +63,18 @@ export async function analyzeATS(rawParams) {
   "suggestions": [
     { "category": "Keywords", "tip": "Add missing technical terms from the job description" }
   ],
+  "highlights": [
+    {
+      "type": "weak_impact",
+      "text": "exact sentence or phrase from the resumeContent that is weak, passive, or generic",
+      "suggestion": "specific coaching/rephrasing advice (e.g. use action verbs, quantify results)"
+    },
+    {
+      "type": "keyword_insertion",
+      "text": "exact heading or line from the resumeContent where missing technical keywords should logically be added",
+      "suggestion": "list of missing keywords and explanation of how to weave them in"
+    }
+  ],
   "overallFeedback": "string highlighting strengths and gaps"
 }
 
@@ -73,7 +85,7 @@ Scoring guidelines:
 - 76-90: Strong match
 - 91-100: Excellent match
 
-Be specific and actionable. Include at least 5 matched keywords (if present), at least 5 missing keywords, and at least 5 improvement suggestions.
+Be specific and actionable. Include at least 5 matched keywords (if present), at least 5 missing keywords, at least 5 improvement suggestions, and at least 3 to 6 highlights mapping to exact parts of the resumeContent.
 IMPORTANT: Return ONLY valid JSON. No markdown, no explanation outside the JSON.`,
     });
 
@@ -97,7 +109,17 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no explanation outside the JSON.
 
     const matchedKeywords = Array.isArray(parsedAnalysis.matchedKeywords) ? parsedAnalysis.matchedKeywords.map(String) : [];
     const missingKeywords = Array.isArray(parsedAnalysis.missingKeywords) ? parsedAnalysis.missingKeywords.map(String) : [];
-    const suggestions = normalizeAtsSuggestions(parsedAnalysis.suggestions);
+    
+    const rawSuggestions = Array.isArray(parsedAnalysis.suggestions) ? parsedAnalysis.suggestions : [];
+    const rawHighlights = Array.isArray(parsedAnalysis.highlights) ? parsedAnalysis.highlights : [];
+    const highlightSuggestions = rawHighlights.map(h => ({
+      category: "highlight",
+      type: h.type || "weak_impact",
+      text: h.text || "",
+      tip: h.suggestion || h.tip || ""
+    })).filter(h => h.text.trim().length > 0);
+
+    const suggestions = normalizeAtsSuggestions([...rawSuggestions, ...highlightSuggestions]);
 
     const record = await db.atsAnalysis.create({
       data: {
