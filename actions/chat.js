@@ -14,6 +14,12 @@ export async function chatWithGemini(prompt) {
   }
   
   const validatedPrompt = validation.data;
+import { validateInput } from "@/lib/validate";
+import { chatPromptSchema } from "@/lib/schemas/forms";
+
+export async function chatWithGemini(prompt) {
+  const validation = validateInput(chatPromptSchema, { prompt });
+  if (!validation.success) return { success: false, errors: validation.errors };
 
   const { userId } = await auth();
   const user = userId
@@ -27,6 +33,7 @@ export async function chatWithGemini(prompt) {
     task: "You are Pathfinder AI, a career-focused assistant. Only answer career-related questions. Politely refuse unrelated questions.",
     untrustedData: [
       { label: "userQuery", value: validatedPrompt, maxLength: 4000 },
+      { label: "userQuery", value: validation.data.prompt, maxLength: 4000 },
     ],
   });
 
