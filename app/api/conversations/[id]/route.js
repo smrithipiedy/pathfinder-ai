@@ -67,22 +67,16 @@ export async function DELETE(request, context) {
       return respondError(ERROR_CODES.USER_NOT_FOUND);
     }
 
-    const conversation = await db.conversation.findFirst({
+    const { count } = await db.conversation.deleteMany({
       where: {
         id: params.id,
         userId: user.id,
       },
     });
 
-    if (!conversation) {
+    if (count === 0) {
       return respondError(ERROR_CODES.RESOURCE_NOT_FOUND, "Conversation not found");
     }
-
-    await db.conversation.delete({
-      where: {
-        id: params.id,
-      },
-    });
 
     return Response.json({ success: true });
   } catch (error) {
