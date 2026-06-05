@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { enforceRateLimit } from "../lib/rate-limit.js";
 import {
@@ -6,6 +6,18 @@ import {
   createRateLimitStore,
   createRedisRateLimitStore,
 } from "../lib/rate-limit/store.js";
+
+const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
+const ORIGINAL_REDIS_URL = process.env.REDIS_URL;
+
+afterEach(() => {
+  process.env.NODE_ENV = ORIGINAL_NODE_ENV;
+  if (ORIGINAL_REDIS_URL == null) {
+    delete process.env.REDIS_URL;
+  } else {
+    process.env.REDIS_URL = ORIGINAL_REDIS_URL;
+  }
+});
 
 /**
  * Minimal in-memory stand-in for a Redis client whose `eval` mirrors the
@@ -103,6 +115,30 @@ it("factory can create a redis store lazily", () => {
   expect(store.kind).toBe("redis");
 });
 
+it("factory fails fast in production when REDIS_URL is missing", () => {
+  process.env.NODE_ENV = "production";
+  delete process.env.REDIS_URL;
+
+  expect(() =>
+    createRateLimitStore({
+      driver: "auto",
+      redisUrl: undefined,
+    })
+  ).toThrow(/REDIS_URL is required in production/i);
+});
+
+it("factory rejects memory driver in production", () => {
+  process.env.NODE_ENV = "production";
+  process.env.REDIS_URL = "redis://localhost:6379";
+
+  expect(() =>
+    createRateLimitStore({
+      driver: "memory",
+      redisUrl: process.env.REDIS_URL,
+    })
+  ).toThrow(/RATE_LIMIT_STORE=memory is not allowed in production/i);
+});
+
 it("rate limiter consumes burst capacity and then rejects", async () => {
   const store = createMemoryRateLimitStore({ bucketTtlMs: 60_000 });
   const subject = { kind: "user", value: "abc" };
@@ -189,6 +225,43 @@ it("memory store evicts stale buckets lazily via getBucket", async () => {
   expect(await store.getBucket("/api/generate:user:1")).toBeNull();
 
   await store.close();
+});
+
+it("concurrent requests respect burst capacity with atomic checkAndDeduct", async () => {
+  const store = createMemoryRateLimitStore({ bucketTtlMs: 60_000 });
+  const subject = { kind: "user", value: "concurrent-test" };
+  const CONCURRENCY = 20;
+
+  const results = await Promise.all(
+    Array.from({ length: CONCURRENCY }, () =>
+      enforceRateLimit({
+        endpoint: "/api/generate",
+        subject,
+        limitPerMinute: 60,
+        burstCapacity: 2,
+        store,
+        now: 1000,
+      })
+    )
+  );
+
+  const allowed = results.filter((r) => r.allowed);
+  const rejected = results.filter((r) => !r.allowed);
+
+  // With burstCapacity=2, at most 2 requests should be allowed
+  expect(allowed.length).toBeLessThanOrEqual(2);
+  // At least 18 should be rejected
+  expect(rejected.length).toBeGreaterThanOrEqual(18);
+
+  // First allowed should have remaining=1, second remaining=0
+  const remainingValues = allowed.map((r) => r.remaining).sort((a, b) => b - a);
+  expect(remainingValues).toEqual([1, 0]);
+
+  // All rejected should have remaining=0 and retryAfterSeconds > 0
+  for (const r of rejected) {
+    expect(r.remaining).toBe(0);
+    expect(r.retryAfterSeconds).toBeGreaterThan(0);
+  }
 });
 
 it("memory store evicts stale buckets periodically via cleanupIntervalMs", async () => {

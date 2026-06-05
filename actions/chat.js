@@ -5,11 +5,30 @@ import { db } from "@/lib/prisma";
 import { generateGeminiContent } from "@/lib/gemini";
 import { buildSecurePrompt } from "@/lib/prompt-safety";
 import { buildUserProfileContext } from "@/lib/ai-context";
+import { validateInput } from "@/lib/validate";
+import { chatPromptSchema } from "@/lib/schemas/forms";
+import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
 
 export async function chatWithGemini(prompt) {
-  if (!prompt) throw new Error("Prompt is required");
+  const validation = validateInput(chatPromptSchema, { prompt });
+  if (!validation.success) {
+    return { success: false, errors: validation.errors };
+  }
 
-  const { userId } = await auth();
+  const authResult = await auth();
+  const userId = authResult?.userId;
+
+  if (userId) {
+    const limit = await checkRateLimit(userId, "chat");
+    if (!limit.allowed) {
+      return {
+        success: false,
+        errors: {
+          _form: [`Chat limit reached. Resets in ${formatResetTime(limit.resetAt)}.`],
+        },
+      };
+    }
+  }
   const user = userId
     ? await db.user.findUnique({
         where: { clerkUserId: userId },
@@ -20,7 +39,7 @@ export async function chatWithGemini(prompt) {
     context: buildUserProfileContext(user),
     task: "You are Pathfinder AI, a career-focused assistant. Only answer career-related questions. Politely refuse unrelated questions.",
     untrustedData: [
-      { label: "userQuery", value: prompt, maxLength: 4000 },
+      { label: "userQuery", value: validation.data.prompt, maxLength: 4000 },
     ],
   });
 

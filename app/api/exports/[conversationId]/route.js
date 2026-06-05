@@ -1,11 +1,18 @@
+import { db } from "@/lib/prisma";
 import { respondError, ERROR_CODES } from "@/lib/api/error-handler";
 import { generateJsonExport } from "@/lib/export/json-export";
 import { generateMarkdownExport } from "@/lib/export/markdown-export";
 import { getOwnedConversation } from "@/lib/conversation/getConversation";
+import { validateId } from "@/lib/validate";
 
 
 export async function GET(request, context) {
   const params = await context.params;
+  const idValidation = validateId(params.conversationId, "conversationId");
+
+  if (!idValidation.success) {
+    return respondError(ERROR_CODES.VALIDATION_ERROR, "Conversation ID is required", idValidation.errors);
+  }
   const format =
     new URL(request.url).searchParams.get("format") || "json";
     if (!["json", "md"].includes(format)) {
@@ -16,7 +23,7 @@ export async function GET(request, context) {
     }
 
   try {
-    const result = await getOwnedConversation(params.conversationId);
+    const result = await getOwnedConversation(idValidation.data);
 
     if (!result) {
       return respondError(ERROR_CODES.UNAUTHORIZED);
@@ -45,8 +52,30 @@ export async function GET(request, context) {
         fileExtension = "json";
     }
 
-    // TODO: Create ExportRecord and AuditLog entries
-    // after migrations are applied.
+    // Create ExportRecord and AuditLog entries
+    await db.$transaction([
+      db.exportRecord.create({
+        data: {
+          userId: user.id,
+          conversationId: conversation.id,
+          format,
+          status: "completed",
+          downloadCount: 1,
+        },
+      }),
+      db.auditLog.create({
+        data: {
+          userId: user.id,
+          action: "EXPORT",
+          resourceType: "CONVERSATION",
+          resourceId: conversation.id,
+          metadata: {
+            format,
+            title: conversation.title,
+          },
+        },
+      }),
+    ]);
 
     console.log("Conversation exported", {
     userId: user.id,

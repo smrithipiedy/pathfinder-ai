@@ -2,15 +2,16 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/sonner";
+import PropTypes from "prop-types";
 import { Providers } from "@/components/providers";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { BackgroundEngine } from "@/components/backgrounds";
+import { CursorGlow } from "@/components/ui/CursorGlow";
+import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import { getEnv } from "@/lib/env";
 
 const inter = Inter({ subsets: ["latin"] });
-
-getEnv();
 
 export const metadata = {
   title: "PathFinder AI",
@@ -22,12 +23,17 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
+/**
+ * @param {{ children: React.ReactNode }} props
+ */
+export default function RootLayout(props) {
+  const { children } = props;
+
   return (
     <ClerkProvider
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
-      signInFallbackRedirectUrl="/onboarding"
+      signInFallbackRedirectUrl="/dashboard"
       signUpFallbackRedirectUrl="/onboarding"
       afterSignOutUrl="/"
     >
@@ -35,6 +41,8 @@ export default function RootLayout({ children }) {
         <body className={inter.className}>
           <Providers>
             <BackgroundEngine />
+            <ScrollProgress />
+            <CursorGlow />
             <Header />
             <main className="min-h-screen">{children}</main>
             <Toaster richColors />
@@ -45,3 +53,7 @@ export default function RootLayout({ children }) {
     </ClerkProvider>
   );
 }
+
+RootLayout.propTypes = {
+  children: PropTypes.node.isRequired,
+};

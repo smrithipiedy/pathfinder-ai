@@ -1,18 +1,36 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   generateGeminiContent: vi.fn(),
   buildSecurePrompt: vi.fn(),
+  auth: vi.fn(),
+  db: {
+    user: {
+      findUnique: vi.fn(),
+    },
+  },
   consoleError: vi.fn(),
+}));
+
+vi.mock("@clerk/nextjs/server", () => ({
+  auth: mocks.auth,
+}));
+
+vi.mock("@/lib/prisma", () => ({
+  db: mocks.db,
 }));
 
 vi.mock("@/lib/gemini", () => ({
   generateGeminiContent: mocks.generateGeminiContent,
 }));
 
-vi.mock("@/lib/prompt-safety", () => ({
-  buildSecurePrompt: mocks.buildSecurePrompt,
-}));
+vi.mock("@/lib/prompt-safety", async () => {
+  const actual = await vi.importActual("@/lib/prompt-safety");
+  return {
+    ...actual,
+    buildSecurePrompt: mocks.buildSecurePrompt,
+  };
+});
 
 // const consoleErrorSpy = vi
 //   .spyOn(console, "error")
@@ -21,8 +39,26 @@ vi.mock("@/lib/prompt-safety", () => ({
 import { chatWithGemini } from "../actions/chat.js";
 
 describe("chatWithGemini", () => {
-  it("requires a prompt", async () => {
-    await expect(chatWithGemini("")).rejects.toThrow("Prompt is required");
+  it("returns validation errors for an empty prompt", async () => {
+    await expect(chatWithGemini("")).resolves.toEqual(
+      expect.objectContaining({
+        success: false,
+        errors: expect.objectContaining({
+          prompt: expect.any(Array),
+        }),
+      })
+    );
+  });
+
+  it("rejects whitespace-only prompts", async () => {
+  await expect(chatWithGemini("   ")).resolves.toEqual(
+    expect.objectContaining({
+      success: false,
+      errors: expect.objectContaining({
+        prompt: expect.any(Array),
+        }),
+      })
+    );
   });
 
   it("wraps the prompt before sending it to Gemini", async () => {

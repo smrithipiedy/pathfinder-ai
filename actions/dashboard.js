@@ -36,7 +36,7 @@ export async function getIndustryInsights() {
 
   try {
     if (isIndustryInsightStale(user.industryInsight)) {
-      const insights = await generateAIInsights(user.industry, user);
+      const insights = await generateAIInsights(user.industry);
       const nextUpdate = getIndustryInsightRefreshTime();
 
       const industryInsight = await db.industryInsight.upsert({

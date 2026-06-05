@@ -3,6 +3,8 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { validateInput } from "@/lib/validate";
+import { userSettingsSchema } from "@/lib/schemas/forms";
 
 async function getUserByClerkId(userId) {
   try {
@@ -40,6 +42,10 @@ export async function getUserSettings() {
   const { userId } = await auth();
 
   if (!userId) {
+export async function getUserSettings(userId) {
+  const { userId: authenticatedUserId } = await auth();
+
+  if (!authenticatedUserId || authenticatedUserId !== userId) {
     throw new Error("Unauthorized");
   }
 
@@ -74,8 +80,14 @@ export async function updateUserSettings(userId, data) {
   }
 
   try {
+    const validation = validateInput(userSettingsSchema, data);
+
+    if (!validation.success) {
+      return { success: false, errors: validation.errors };
+    }
+
     const user = await getUserByClerkId(userId);
-    const settingsData = normalizeSettingsInput(data);
+    const settingsData = validation.data;
 
     const existingSettings = await db.userSettings.findUnique({
       where: { userId: user.id },

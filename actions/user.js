@@ -5,13 +5,21 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { generateAIInsights } from "./dashboard";
 import { getIndustryInsightRefreshTime } from "@/lib/industry-insights";
+import { validateInput } from "@/lib/validate";
+import { userProfileSchema } from "@/lib/schemas/forms";
 
 /**
  * Updates the current user's profile with industry and other info.
  * `data` is expected to hold: { industry, currentRole?, targetRole?, careerGoals?, experience?, bio?, skills? }
  */
 export async function updateUser(data) {
-  if (!data?.industry) throw new Error("Industry is required");
+  const validation = validateInput(userProfileSchema, data);
+
+  if (!validation.success) {
+    return { success: false, errors: validation.errors };
+  }
+
+  const profileData = validation.data;
 
   const { userId } = await auth();
   if (!userId) throw new Error("Please sign in to complete onboarding");
@@ -26,12 +34,12 @@ export async function updateUser(data) {
     // long-running external calls inside a DB tx (which can cause timeouts).
     let precomputedInsights = null;
     let existingInsight = await db.industryInsight.findUnique({
-      where: { industry: data.industry },
+      where: { industry: profileData.industry },
     });
 
     if (!existingInsight) {
       try {
-        precomputedInsights = await generateAIInsights(data.industry, data);
+        precomputedInsights = await generateAIInsights(profileData.industry, profileData);
       } catch (e) {
         // generateAIInsights already handles fallbacks, but guard here
         console.error("Failed to generate insights pre-transaction:", e);
@@ -45,15 +53,15 @@ export async function updateUser(data) {
          * 1. Ensure an IndustryInsight row exists (create if missing)
          * --------------------------------------------------------- */
         let industryInsight = await tx.industryInsight.findUnique({
-          where: { industry: data.industry },
+          where: { industry: profileData.industry },
         });
 
         if (!industryInsight) {
-          const insights = precomputedInsights ?? (await generateAIInsights(data.industry, data));
+          const insights = precomputedInsights ?? (await generateAIInsights(profileData.industry, profileData));
 
           industryInsight = await tx.industryInsight.create({
             data: {
-              industry: data.industry,
+              industry: profileData.industry,
               ...insights,
               nextUpdate: getIndustryInsightRefreshTime(),
             },
@@ -66,13 +74,13 @@ export async function updateUser(data) {
         const updatedUser = await tx.user.update({
           where: { id: user.id },
           data: {
-            industry: data.industry,
-            currentRole: data.currentRole ?? null,
-            targetRole: data.targetRole ?? null,
-            careerGoals: data.careerGoals ?? null,
-            experience: data.experience,
-            bio: data.bio,
-            skills: data.skills,
+            industry: profileData.industry,
+            currentRole: profileData.currentRole ?? null,
+            targetRole: profileData.targetRole ?? null,
+            careerGoals: profileData.careerGoals ?? null,
+            experience: profileData.experience ?? null,
+            bio: profileData.bio ?? null,
+            skills: profileData.skills ?? [],
           },
         });
 
@@ -115,30 +123,15 @@ export async function getUserOnboardingStatus() {
     const email = clerkUser.emailAddresses?.[0]?.emailAddress;
     if (!email) throw new Error("User email not found in Clerk!");
 
-    /* 2a ▸ try to find an existing row with this e-mail */
-    user = await db.user.findUnique({ where: { email } });
-
-    if (user) {
-      /* Row exists → just link the clerkUserId (and refresh meta) */
-      user = await db.user.update({
-        where: { id: user.id },
-        data: {
-          clerkUserId: userId,
-          name: clerkUser.firstName ?? user.name,
-          imageUrl: clerkUser.imageUrl ?? user.imageUrl,
-        },
-      });
-    } else {
-      /* 3 ▸ otherwise create a brand-new row */
-      user = await db.user.create({
-        data: {
-          clerkUserId: userId,
-          email,
-          name: clerkUser.firstName ?? "",
-          imageUrl: clerkUser.imageUrl ?? "",
-        },
-      });
-    }
+    /* 2 ▸ create a brand-new row */
+    user = await db.user.create({
+      data: {
+        clerkUserId: userId,
+        email,
+        name: clerkUser.firstName ?? "",
+        imageUrl: clerkUser.imageUrl ?? "",
+      },
+    });
   }
 
   return { isOnboarded: Boolean(user.industry), user, isSignedIn: true };
