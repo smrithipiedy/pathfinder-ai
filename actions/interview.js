@@ -284,3 +284,40 @@ Provide feedback in JSON format ONLY:
     return { success: false, error: "Failed to evaluate answer." };
   }
 }
+
+/**
+ * Evaluates a transcribed video answer along with basic body language metrics.
+ */
+export async function evaluateVideoAnswer(question, transcribedAnswer, metrics) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const prompt = `You are an expert interview coach evaluating a video interview response.
+Evaluate the transcribed answer and the provided facial metrics (e.g., face detected percentage).
+
+Question: ${question}
+Candidate's spoken answer: ${transcribedAnswer}
+Body Language Metrics: ${JSON.stringify(metrics)}
+
+Provide feedback in JSON format ONLY:
+{
+  "score": 85,
+  "fillerWordsCount": 3,
+  "confidence": "High",
+  "bodyLanguageFeedback": "You maintained great eye contact and presence.",
+  "verbalFeedback": "Your answer was very structured, but you used 'um' a few times."
+}`;
+
+  try {
+    const aiResult = await generateGeminiContent(prompt);
+    let rawText = aiResult.response.text();
+    if (rawText.startsWith("\`\`\`json")) {
+      rawText = rawText.replace(/\`\`\`json/g, "").replace(/\`\`\`/g, "").trim();
+    }
+    const parsed = JSON.parse(rawText);
+    return { success: true, data: parsed };
+  } catch (error) {
+    console.error("Video evaluation error:", error);
+    return { success: false, error: "Failed to evaluate video answer." };
+  }
+}

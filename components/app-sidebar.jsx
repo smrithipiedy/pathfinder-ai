@@ -23,7 +23,8 @@ import {
   Diamond,
   Sparkles,
   Lightbulb,
-  DollarSign
+  DollarSign,
+  Video
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -41,7 +42,7 @@ const MENU_GROUPS = [
     title: "Career Tools",
     items: [
       { href: "/job-tracker", label: "Job Tracker", icon: <Briefcase className="h-4 w-4" /> },
-      { href: "/resume", label: "Resumes", icon: <FileText className="h-4 w-4" /> },
+      { href: "/resume-builder", label: "Resume Builder", icon: <FileText className="h-4 w-4" /> },
       { href: "/ai-cover-letter", label: "Cover Letters", icon: <Mail className="h-4 w-4" /> },
       { href: "/linkedin-optimizer", label: "LinkedIn Optimizer", icon: <ScanSearch className="h-4 w-4" /> },
       { href: "/networking", label: "Networking", icon: <Mail className="h-4 w-4" /> },
@@ -49,6 +50,7 @@ const MENU_GROUPS = [
       { href: "/salary-negotiation", label: "Salary Coach", icon: <DollarSign className="h-4 w-4" /> },
       { href: "/interview", label: "Mock Interviews", icon: <Mic className="h-4 w-4" /> },
       { href: "/interview/voice-coach", label: "Voice Coach", icon: <Mic className="h-4 w-4 text-green-500" /> },
+      { href: "/interview/video-coach", label: "Video Coach", icon: <Video className="h-4 w-4 text-blue-500" /> },
       { href: "/roadmap", label: "Career Roadmap", icon: <Map className="h-4 w-4" /> },
       { href: "/dashboard?tab=templates", label: "Templates", icon: <Copy className="h-4 w-4" /> },
     ]
