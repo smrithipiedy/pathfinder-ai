@@ -5,14 +5,27 @@ import { toast } from "sonner";
 
 export function useCareerShortlist() {
   const [shortlist, setShortlist] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
     try {
       const stored = localStorage.getItem("career-shortlist");
       if (stored) {
-        setShortlist(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.every(c => c && typeof c === 'object' && c.id && c.title)) {
+          setShortlist(parsed);
+        } else {
+          setShortlist([]);
+          localStorage.removeItem("career-shortlist");
+        }
       }
+    } catch (e) {
+      console.error("Failed to load shortlist", e);
+    } finally {
+      setIsLoaded(true);
+    }
+  }, []);
     } catch (e) {
       console.error("Failed to load shortlist", e);
     }
@@ -83,5 +96,6 @@ export function useCareerShortlist() {
     toggleShortlist,
     clearShortlist,
     isShortlisted,
+    isLoaded,
   };
 }

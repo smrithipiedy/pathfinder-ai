@@ -8,7 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export default function ComparePage() {
-  const { shortlist, toggleShortlist } = useCareerShortlist();
+  const { shortlist, toggleShortlist, isLoaded } = useCareerShortlist();
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (shortlist.length === 0) {
     return (
@@ -177,7 +185,7 @@ export default function ComparePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8 pt-8 border-t border-border/50">
             {shortlist.map((career) => (
-              <Link key={`btn-${career.id}`} href="/roadmap/generate" className="w-full">
+              <Link key={`btn-${career.id}`} href={`/roadmap/generate?career=${encodeURIComponent(career.title)}`} className="w-full">
                 <Button className="w-full font-bold rounded-xl" variant="outline">
                   Generate {career.title} Roadmap
                 </Button>

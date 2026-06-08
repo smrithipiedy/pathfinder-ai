@@ -42,13 +42,21 @@ export function CompareFloatingBar() {
             <Button variant="ghost" size="sm" onClick={clearShortlist} className="hidden sm:flex rounded-full text-xs">
               Clear
             </Button>
-            <Link href="/compare">
-              <Button size="sm" className="rounded-full shadow-lg" disabled={shortlist.length < 2}>
+            {shortlist.length < 2 ? (
+              <Button size="sm" className="rounded-full shadow-lg" disabled>
                 <Layers className="h-4 w-4 mr-1.5" />
                 Compare
                 <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
-            </Link>
+            ) : (
+              <Link href="/compare">
+                <Button size="sm" className="rounded-full shadow-lg">
+                  <Layers className="h-4 w-4 mr-1.5" />
+                  Compare
+                  <ArrowRight className="h-4 w-4 ml-1.5" />
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </motion.div>
