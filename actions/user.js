@@ -42,11 +42,10 @@ export async function updateUser(data) {
       console.error("Failed to generate insights pre-transaction:", e);
       precomputedInsights = null;
     }
-
-     const result = await db.$transaction(
+    
+    const result = await db.$transaction(
       async (tx) => {
-
-      const industryInsight = precomputedInsights
+        const industryInsight = precomputedInsights
         ? await tx.industryInsight.upsert({
             where: { industry: profileData.industry },
             update: {},
