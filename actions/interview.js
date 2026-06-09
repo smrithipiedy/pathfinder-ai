@@ -688,32 +688,39 @@ export async function saveQuizResult(questions, answers, category = "Technical")
  * Fetches all assessments for the signed-in user, newest first.
  */
 export async function getAssessments() {
-  const { userId } = await auth();
-  if (!userId) return [];
+  try {
+    const { userId } = await auth();
+    if (!userId) return [];
 
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-  if (!user) return [];
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+    if (!user) return [];
 
-  return db.assessment.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-  });
+    return db.assessment.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (error) {
+    console.error("Error fetching assessments:", error);
+    return [];
+  }
 }
 
 /**
  * Fetches a single assessment by ID.
  */
 export async function getAssessment(id) {
-  const { userId } = await auth();
-  if (!userId) return null;
+  try {
+    const { userId } = await auth();
+    if (!userId) return null;
 
-  const user = await db.user.findUnique({
-    where: { clerkUserId: userId },
-  });
-  if (!user) return null;
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+    if (!user) return null;
 
+<<<<<<< HEAD
   const assessment = await db.assessment.findFirst({
     where: {
       id,
@@ -793,5 +800,16 @@ Provide feedback in JSON format ONLY:
   } catch (error) {
     console.error("Video evaluation error:", error);
     return { success: false, error: "Failed to evaluate video answer." };
+=======
+    return db.assessment.findFirst({
+      where: {
+        id,
+        userId: user.id,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching assessment:", error);
+    return null;
+>>>>>>> d7f2f9f (dockerization and production check)
   }
 }

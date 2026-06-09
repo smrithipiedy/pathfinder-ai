@@ -114,18 +114,18 @@ export function PricingSection() {
                     ))}
                   </ul>
 
-                  <Link href={plan.href} className="block">
-                    <Button
-                      className={`w-full h-12 rounded-xl font-bold ${
-                        plan.popular
-                          ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20"
-                          : "glass"
-                      }`}
-                    >
+                  <Button asChild
+                    className={`w-full h-12 rounded-xl font-bold ${
+                      plan.popular
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20"
+                        : "glass"
+                    }`}
+                  >
+                    <Link href={plan.href}>
                       {plan.cta}
                       <ArrowRight className="h-4 w-4 ml-2" />
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </div>
               </motion.div>
             </StaggerItem>

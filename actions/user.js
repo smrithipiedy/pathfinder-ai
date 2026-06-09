@@ -89,12 +89,14 @@ export async function updateUser(data) {
  * Returns: { isOnboarded: boolean }
  */
 export async function getUserOnboardingStatus() {
-  const { userId } = await auth();
+  try {
+    const { userId } = await auth();
 
-  if (!userId) {
-    return { isOnboarded: false, user: null, isSignedIn: false };
-  }
+    if (!userId) {
+      return { isOnboarded: false, user: null, isSignedIn: false };
+    }
 
+<<<<<<< HEAD
   /* 1 ▸ look up by Clerk ID */
   let user = await db.user.findUnique({
     where: { clerkUserId: userId },
@@ -110,16 +112,43 @@ export async function getUserOnboardingStatus() {
 
     /* 2 ▸ create a brand-new row (use upsert to prevent race conditions) */
     user = await db.user.upsert({
+=======
+    let user = await db.user.findUnique({
+>>>>>>> d7f2f9f (dockerization and production check)
       where: { clerkUserId: userId },
-      update: {},
-      create: {
-        clerkUserId: userId,
-        email,
-        name: clerkUser.firstName ?? "",
-        imageUrl: clerkUser.imageUrl ?? "",
-      },
     });
+
+    if (!user) {
+      const backend = await clerkClient();
+      const clerkUser = await backend.users.getUser(userId);
+
+      const email = clerkUser.emailAddresses?.[0]?.emailAddress;
+      if (!email) {
+        return { isOnboarded: false, user: null, isSignedIn: true, error: "Email not found" };
+      }
+
+      user = await db.user.upsert({
+        where: { clerkUserId: userId },
+        update: {},
+        create: {
+          clerkUserId: userId,
+          email,
+          name: clerkUser.firstName ?? "",
+          imageUrl: clerkUser.imageUrl ?? "",
+        },
+      });
+    }
+
+    return {
+      isOnboarded: Boolean(user.industry),
+      user,
+      isSignedIn: true,
+    };
+  } catch (error) {
+    console.error("Error getting user onboarding status:", error);
+    return { isOnboarded: false, user: null, isSignedIn: false, error: error.message };
   }
+<<<<<<< HEAD
 
 return {
   isOnboarded: Boolean(user.industry),
@@ -127,3 +156,6 @@ return {
   isSignedIn: true,
 };
 }
+=======
+}
+>>>>>>> d7f2f9f (dockerization and production check)
