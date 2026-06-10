@@ -133,7 +133,7 @@ export default function LandingPage() {
                   }}
                   className="flex flex-col sm:flex-row items-start gap-4"
                 >
-                  <MagneticButton>
+                  <MagneticButton asChild>
                     <Button
                       size="lg"
                       onClick={handleDashboard}

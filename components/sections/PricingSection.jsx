@@ -84,11 +84,10 @@ export function PricingSection() {
             <StaggerItem key={plan.name}>
               <motion.div
                 whileHover={{ y: -4 }}
-                className={`relative h-full rounded-2xl border p-8 transition-all duration-500 ${
-                  plan.popular
+                className={`relative h-full rounded-2xl border p-8 transition-all duration-500 ${plan.popular
                     ? "border-primary/40 bg-primary/[0.03] shadow-xl shadow-primary/5"
                     : "border-border/40 glass hover:border-primary/30"
-                }`}
+                  }`}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-widest shadow-lg">
@@ -139,6 +138,7 @@ export function PricingSection() {
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
+
                 </div>
               </motion.div>
             </StaggerItem>
