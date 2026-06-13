@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // =============================================================================
@@ -39,6 +39,7 @@ model User {
   careerGoals     String?
   bio             String?
   experience      Int?
+  
   // Settings
   saveChatHistory Boolean          @default(true)
 
@@ -67,6 +68,21 @@ model User {
   promotionStrategies  PromotionStrategy[]
   freelanceProposals   FreelanceProposal[]
   behavioralPreps      BehavioralPrep[]
+  layoffStrategies     LayoffStrategy[]
+  coffeeChatSessions   CoffeeChatSession[]
+  equityAnalyses       EquityAnalysis[]
+  assignmentGrades     AssignmentGrade[]
+  burnoutAssessments   BurnoutAssessment[]
+  sideHustleIdeas      SideHustleIdea[]
+  remoteWorkPitches    RemoteWorkPitch[]
+  internalTransfers    InternalTransfer[]
+  careerBreakPlans     CareerBreakPlan[]
+  visaStrategies       VisaStrategy[]
+  relocationAnalyses   RelocationAnalysis[]
+  mentorOutreaches     MentorOutreach[]
+  toxicWorkplaces      ToxicWorkplaceEscape[]
+  freelanceRates       FreelanceRate[]
+  ikigaiDiscoveries    IkigaiDiscovery[]
   settings             UserSettings?
 
   exportRecords ExportRecord[]
@@ -257,11 +273,13 @@ model AiRateLimit {
   action    String
   windowStart DateTime
   count     Int      @default(1)
+  expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([userId, action, windowStart])
   @@index([userId, action])
+  @@index([expiresAt])
 }
 
 model Roadmap {
@@ -465,6 +483,192 @@ model BehavioralPrep {
   company        String
   assessmentType String
   content        Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model LayoffStrategy {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  details        String   @db.Text
+  planContent    Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model CoffeeChatSession {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetRole     String
+  industry       String
+  chatHistory    Json
+  feedback       Json?
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model EquityAnalysis {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offerDetails   Json
+  analysis       Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model AssignmentGrade {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt         String   @db.Text
+  solution       String   @db.Text
+  gradeData      Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model BurnoutAssessment {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symptoms       String   @db.Text
+  workload       String   @db.Text
+  assessment     Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model SideHustleIdea {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills         String   @db.Text
+  interests      String   @db.Text
+  ideasData      Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model RemoteWorkPitch {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String
+  reasons        String   @db.Text
+  objections     String   @db.Text
+  pitchData      Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model InternalTransfer {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentRole    String
+  targetRole     String
+  reasons        String   @db.Text
+  transferData   Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model CareerBreakPlan {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  duration       String
+  reason         String   @db.Text
+  returnGoals    String   @db.Text
+  planData       Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model VisaStrategy {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  visaType       String
+  targetRole     String
+  concerns       String   @db.Text
+  strategyData   Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model RelocationAnalysis {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentCity    String
+  targetCity     String
+  salary         String
+  analysisData   Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model MentorOutreach {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goals          String   @db.Text
+  targetIndustry String
+  outreachData   Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model ToxicWorkplaceEscape {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symptoms       String   @db.Text
+  role           String
+  escapeData     Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model FreelanceRate {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills         String
+  experience     String
+  targetIncome   String
+  rateData       Json
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+model IkigaiDiscovery {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  passions       String   @db.Text
+  skills         String   @db.Text
+  marketNeeds    String   @db.Text
+  ikigaiData     Json
   createdAt      DateTime @default(now())
 
   @@index([userId])
