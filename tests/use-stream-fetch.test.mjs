@@ -129,6 +129,7 @@ describe("useStreamFetch", () => {
     const originalFetch = globalThis.fetch;
     const fetchMock = vi.fn().mockRejectedValue(new Error("Network failure"));
     vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network failure")));
 
     try {
       const { result } = renderHook(() => useStreamFetch());
@@ -146,6 +147,7 @@ describe("useStreamFetch", () => {
       expect(result.current.finalText).toBe("");
     } finally {
       vi.stubGlobal("fetch", originalFetch);
+      vi.unstubAllGlobals();
     }
   });
 
