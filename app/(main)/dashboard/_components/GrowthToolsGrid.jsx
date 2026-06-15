@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-<<<<<<< HEAD
+
 import {
   FileText,
   ScanSearch,
@@ -32,15 +32,7 @@ import {
   Users,
   BookOpen,
   Sparkles,
-  ArrowRight
-=======
-import { 
-  ScanSearch, Mic, FileText, Mail, Briefcase, ChevronRight,
-  Flame, Linkedin, Star, Video, LayoutList, Lightbulb, 
-  DollarSign, Calculator, Send, ArrowRightLeft, CalendarClock,
-  Coffee, ShieldAlert, Code2, HeartPulse, Rocket,
-  Home, Workflow, CalendarHeart, Globe, MapPin, Users, Flag, HandCoins, Target, LineChart, Brain, BookOpen,BrainCircuit
->>>>>>> f92b694 (emnnhancement)
+  ArrowRight,
 } from "lucide-react";
 
 const TOOL_CATEGORIES = [
