@@ -483,6 +483,7 @@ Rules:
             fullResponse
           );
         }
+        if (abortController.signal.aborted) { safeClose(); return; }
         safeEnqueue("done", {
           finalText: fullResponse,
           hasContent: Boolean(fullResponse.trim()),
@@ -525,3 +526,4 @@ Rules:
     headers,
   });
 }
+
