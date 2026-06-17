@@ -33,6 +33,16 @@ export async function updateUser(data) {
   // long-running external calls inside a DB tx (which can cause timeouts).
   let precomputedInsights = null;
   try {
+    // Generate industry insights outside the DB transaction to avoid
+    // long-running external calls inside a DB tx (which can cause timeouts).
+    let precomputedInsights = null;
+    let existingInsight = await db.industryInsight.findUnique({
+      where: { industry: data.industry },
+    });
+
+    if (!existingInsight) {
+      precomputedInsights = await generateAIInsights(data.industry);
+    }
     precomputedInsights = await generateAIInsights(
       profileData.industry,
       profileData
