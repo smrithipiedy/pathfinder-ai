@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CheckCircle2, XCircle, Copy, Target, Briefcase, GraduationCap, Code, Sparkles, Plus, AlertTriangle, ArrowRight } from "lucide-react";
+import { CheckCircle2, XCircle, Copy, Target, Briefcase, GraduationCap, Code, Sparkles, Plus, AlertTriangle, ArrowRight, RotateCcw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -28,9 +28,13 @@ export default function MatchResult({ result, onReset }) {
   const scoreBgColor = matchScore >= 75 ? "bg-green-500" : matchScore >= 50 ? "bg-amber-500" : "bg-red-500";
   const strokeDashoffset = 283 - (283 * matchScore) / 100;
 
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard!");
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Copied to clipboard!");
+    } catch (err) {
+      toast.error("Failed to copy to clipboard.");
+    }
   };
 
   return (
@@ -135,6 +139,7 @@ export default function MatchResult({ result, onReset }) {
         </h3>
         <div className="grid md:grid-cols-2 gap-4">
           {Object.entries(sectionFeedback).map(([section, data]) => {
+            if (!data || typeof data !== "object" || data.score === undefined || !data.feedback) return null;
             const secScoreColor = data.score >= 75 ? "text-green-500" : data.score >= 50 ? "text-amber-500" : "text-red-500";
             return (
               <Card key={section} className="glass border-border/50 hover:border-primary/30 transition-colors">

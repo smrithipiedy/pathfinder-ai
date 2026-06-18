@@ -26,7 +26,7 @@ export default function ErrorBoundary({ error, reset }) {
             <div className="text-center space-y-2">
               <CardTitle className="text-2xl font-bold">Analysis Failed</CardTitle>
               <CardDescription className="text-base">
-                {error.message || "Something went wrong while trying to analyze your resume match."}
+                {process.env.NODE_ENV === "development" ? error.message : "Something went wrong while trying to analyze your resume match."}
               </CardDescription>
             </div>
           </CardHeader>

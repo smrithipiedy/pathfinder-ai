@@ -21,7 +21,7 @@ async function getAuthenticatedUserId() {
   // Fallback for local testing when auth is bypassed
   if (process.env.NODE_ENV === "development") {
     console.warn("Auth bypassed, using fallback user for local development");
-    return "dummy-user-id";
+    return "dummy_user_123";
   }
   
   return null;
@@ -105,7 +105,7 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no explanation outside the JSON.
         companyName: companyName || null,
         jobDescription,
         resumeContent,
-        matchScore: Math.min(100, Math.max(0, parsedAnalysis.matchScore || 0)),
+        matchScore: Math.min(100, Math.max(0, Number(parsedAnalysis.matchScore) || 0)),
         matchedKeywords: Array.isArray(parsedAnalysis.matchedKeywords) ? parsedAnalysis.matchedKeywords.map(String) : [],
         missingKeywords: Array.isArray(parsedAnalysis.missingKeywords) ? parsedAnalysis.missingKeywords.map(String) : [],
         sectionFeedback: parsedAnalysis.sectionFeedback || {},
@@ -118,7 +118,7 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no explanation outside the JSON.
     return { success: true, data: record };
   } catch (error) {
     console.error("[Resume Match Action Error]:", error);
-    return { success: false, errors: { _form: [error.message || String(error)] } };
+    return { success: false, errors: { _form: ["An error occurred processing your request"] } };
   }
 }
 
@@ -139,6 +139,19 @@ export async function getResumeMatchHistory() {
     const analyses = await db.resumeMatchAnalysis.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
+      take: 50,
+      select: {
+        id: true,
+        jobTitle: true,
+        companyName: true,
+        matchScore: true,
+        matchedKeywords: true,
+        missingKeywords: true,
+        sectionFeedback: true,
+        suggestions: true,
+        improvedBulletPoints: true,
+        createdAt: true,
+      }
     });
     return { success: true, data: analyses || [] };
   } catch (error) {
@@ -185,6 +198,6 @@ export async function deleteResumeMatchAnalysis(id) {
     return { success: true };
   } catch (error) {
     console.error("Failed to safely delete resume match entry:", error);
-    return { success: false, errors: { _form: [error.message || String(error)] } };
+    return { success: false, errors: { _form: ["An error occurred processing your request"] } };
   }
 }

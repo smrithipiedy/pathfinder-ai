@@ -22,7 +22,7 @@ const clerkHandler = clerkMiddleware(async (auth, req) => {
 });
 
 export default function middleware(req, event) {
-  if (process.env.NODE_ENV === "development") {
+  if (process.env.NODE_ENV === "development" && process.env.SKIP_AUTH === "true") {
     return NextResponse.next();
   }
   return clerkHandler(req, event);

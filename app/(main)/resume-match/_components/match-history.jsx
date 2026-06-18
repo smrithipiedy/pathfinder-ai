@@ -52,6 +52,13 @@ export default function MatchHistory({ history, setHistory, onSelect }) {
             key={item.id} 
             className="glass border-border/50 hover:border-primary/50 transition-all cursor-pointer group hover:shadow-md"
             onClick={() => onSelect(item)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect(item);
+              }
+            }}
+            tabIndex={0}
           >
             <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               

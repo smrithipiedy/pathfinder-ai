@@ -774,5 +774,5 @@ model ResumeMatchAnalysis {
   improvedBulletPoints Json
   createdAt            DateTime @default(now())
 
-  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
 }
