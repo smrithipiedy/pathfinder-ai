@@ -9,6 +9,7 @@ import { parseAIJson } from "@/lib/validate";
 import { generateGeminiContent } from "@/lib/gemini";
 import { buildUserProfileContext } from "@/lib/ai-context";
 import { checkRateLimit, formatResetTime } from "@/lib/rate-limit-actions";
+import { getHistoryUser } from "@/lib/history-user";
 
 export async function generateResumeContent(jobDescription) {
   const { userId } = await auth();
@@ -28,7 +29,7 @@ export async function generateResumeContent(jobDescription) {
     return { success: false, errors: { _form: ["Please provide a valid job description (at least 50 characters)."] } };
   }
 
-  const user = await getUserByClerkId(userId);
+  const user = await getHistoryUser(userId);
   if (!user) return { success: false, errors: { _form: ["User not found"] } };
 
   const prompt = buildSecurePrompt({

@@ -6,6 +6,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { generateGeminiContent } from "@/lib/gemini";
+import { getHistoryUser } from "@/lib/history-user";
 
 export async function buildReadme(style, boundaries, feedback) {
   const { userId } = await auth();
@@ -60,7 +61,7 @@ export async function getManagerReadmes() {
   const { userId } = await auth();
   if (!userId) return { success: false, data: [] };
 
-  const user = await getUserByClerkId(userId);
+  const user = await getHistoryUser(userId);
   if (!user) return { success: false, data: [] };
 
   const records = await db.managerReadme.findMany({
