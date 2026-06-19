@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { isValidQuizQuestions } from "@/lib/type-guards";
 import {
   Card,
   CardContent,
@@ -81,20 +82,9 @@ export default function Quiz() {
     }
   };
 
-  const calculateScore = () => {
-    let correct = 0;
-    answers.forEach((answer, index) => {
-      if (answer === quizData[index].correctAnswer) {
-        correct++;
-      }
-    });
-    return (correct / quizData.length) * 100;
-  };
-
   const finishQuiz = async () => {
-    const score = calculateScore();
     try {
-      await saveQuizResultFn(quizData, answers, score, selectedCategory);
+      await saveQuizResultFn(quizData, answers, selectedCategory);
       toast.success("Quiz completed!");
     } catch (error) {
       toast.error(error.message || "Failed to save quiz results");
@@ -169,6 +159,30 @@ export default function Quiz() {
         <CardFooter>
           <Button onClick={() => generateQuizFn(selectedCategory)} className="w-full">
             Start {selectedCategory} Quiz
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  const isQuizValid = isValidQuizQuestions(quizData);
+  if (!isQuizValid) {
+    return (
+      <Card className="mx-2 border-destructive/20 bg-destructive/5 text-center">
+        <CardHeader>
+          <CardTitle className="text-destructive font-bold">Error Loading Quiz</CardTitle>
+          <CardDescription>
+            The generated quiz questions did not match the expected format.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Please try starting a new quiz. If the issue persists, contact support.
+          </p>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={startNewQuiz} className="w-full">
+            Start New Quiz
           </Button>
         </CardFooter>
       </Card>
