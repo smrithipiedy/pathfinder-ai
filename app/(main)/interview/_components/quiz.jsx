@@ -63,7 +63,8 @@ export default function Quiz() {
 
   useEffect(() => {
     if (quizData) {
-      setAnswers(new Array(quizData.length).fill(null));
+      const qs = quizData.questions || quizData;
+      setAnswers(new Array(qs.length).fill(null));
     }
   }, [quizData]);
 
@@ -74,7 +75,8 @@ export default function Quiz() {
   };
 
   const handleNext = () => {
-    if (currentQuestion < quizData.length - 1) {
+    const qs = quizData?.questions || quizData;
+    if (currentQuestion < qs.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setShowExplanation(false);
     } else {
@@ -84,7 +86,8 @@ export default function Quiz() {
 
   const finishQuiz = async () => {
     try {
-      await saveQuizResultFn(quizData, answers, selectedCategory);
+      const qs = quizData?.questions || quizData;
+      await saveQuizResultFn(qs, answers, selectedCategory);
       toast.success("Quiz completed!");
     } catch (error) {
       toast.error(error.message || "Failed to save quiz results");
@@ -189,13 +192,20 @@ export default function Quiz() {
     );
   }
 
-  const question = quizData[currentQuestion];
+  const questions = quizData.questions || quizData;
+  const question = questions[currentQuestion];
+  const isFallback = quizData.isFallback;
 
   return (
     <Card className="mx-2">
       <CardHeader>
+        {isFallback && (
+          <div className="mb-4 p-4 bg-yellow-50 text-yellow-900 border border-yellow-200 rounded-lg text-sm">
+            <strong>Note:</strong> AI generation is currently unavailable. Using generic fallback questions.
+          </div>
+        )}
         <CardTitle className="flex items-center justify-between">
-          <span>Question {currentQuestion + 1} of {quizData.length}</span>
+          <span>Question {currentQuestion + 1} of {questions.length}</span>
           <span className="text-xs font-normal text-muted-foreground px-2 py-1 bg-muted rounded-full">
             {selectedCategory}
           </span>
