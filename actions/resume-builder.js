@@ -1,4 +1,5 @@
 "use server";
+import { validateAuthenticatedUser } from "@/lib/auth-user";
 import { JOB_DESCRIPTION_MAX_LENGTH } from "@/lib/input-limits";
 import { UNAUTHORIZED_RESPONSE } from "@/lib/auth-errors";
 import { db } from "@/lib/prisma";
@@ -31,9 +32,11 @@ export async function generateResumeContent(jobDescription) {
   if (!jobDescription || jobDescription.trim().length < 50) {
     return { success: false, errors: { _form: ["Please provide a valid job description (at least 50 characters)."] } };
   }
-
+  
   const user = await getUserByClerkId(userId);
-  if (!user) return createErrorResponse("User not found");
+  if (!validateAuthenticatedUser(user)) {
+    return createErrorResponse("User not found");
+  }
 
   const prompt = buildSecurePrompt({
     context: buildUserProfileContext(user),
