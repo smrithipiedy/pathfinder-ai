@@ -212,6 +212,10 @@ export default function useStreamFetch() {
 
         if (event === "error") {
           const message =
+            (typeof parsed.error === "string" && parsed.error) ||
+            (parsed.error &&
+              typeof parsed.error.message === "string" &&
+              parsed.error.message) ||
             (typeof parsed.message === "string" && parsed.message) ||
             "Stream failed";
 
