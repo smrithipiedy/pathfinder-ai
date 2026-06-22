@@ -106,10 +106,10 @@ describe("generateExecutivePresence", () => {
     actionMocks.generateGeminiContent.mockResolvedValue({
       response: {
         text: () => JSON.stringify({
-          personaSummary: "Confident.",
-          communicationUpgrades: [{ from: "weak", to: "strong", why: "reason" }],
-          meetingStrategy: ["Str 1"],
-          gravitasBuilders: ["Builder 1"]
+          personaSummary: "A highly confident and decisive leader.",
+          communicationUpgrades: [{ from: "I think we...", to: "I recommend we...", why: "Sounds more authoritative." }],
+          meetingStrategy: ["Pre-wire stakeholders"],
+          gravitasBuilders: ["Practice the power pause"]
         }),
       },
     });

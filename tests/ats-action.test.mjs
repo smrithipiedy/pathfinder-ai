@@ -6,6 +6,8 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   cachedGenerateGeminiContent: vi.fn(),
   generateCacheKey: vi.fn(),
+  checkRateLimit: vi.fn(),
+  formatResetTime: vi.fn(),
 }));
 
 vi.mock("@clerk/nextjs/server", () => ({
@@ -20,11 +22,12 @@ vi.mock("@/lib/prisma", () => ({
     atsAnalysis: {
       create: mocks.create,
     },
-    aiRateLimit: {
-      findUnique: vi.fn().mockResolvedValue(null),
-      upsert: vi.fn().mockResolvedValue({}),
-    },
   },
+}));
+
+vi.mock("@/lib/rate-limit-actions", () => ({
+  checkRateLimit: mocks.checkRateLimit,
+  formatResetTime: mocks.formatResetTime,
 }));
 
 vi.mock("@/lib/cache", async () => {
@@ -40,11 +43,15 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
+process.env.GEMINI_API_KEY = "dummy-api-key";
+
 import { analyzeATS } from "../actions/ats.js";
 
 describe("analyzeATS", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.checkRateLimit.mockResolvedValue({ allowed: true });
+    mocks.formatResetTime.mockReturnValue("10m");
   });
 
   it("uses cachedGenerateGeminiContent with a specific cache key", async () => {
