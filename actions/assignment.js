@@ -6,6 +6,7 @@ import { createSuccessResponse } from "@/lib/action-success";
 import { auth } from "@clerk/nextjs/server";
 import { logActionError } from "@/lib/action-logger";
 import { revalidatePath } from "next/cache";
+import { EMPTY_HISTORY_RESPONSE } from "@/lib/history-response";
 import { buildSecurePrompt, parseAIJson } from "@/lib/prompt-safety";
 import { buildHistoryResponse } from "@/lib/history-loader";
 import { generateGeminiContent } from "@/lib/gemini";
@@ -65,7 +66,7 @@ export async function gradeAssignment(promptText, solutionText) {
 
 export async function getAssignmentGrades() {
   const { userId } = await auth();
-  if (!userId) return { success: false, data: [] };
+  if (!userId) return EMPTY_HISTORY_RESPONSE;
 
   const user = await db.user.findUnique(buildUserLookup(userId));
   if (!user) return { success: false, data: [] };
